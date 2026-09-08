@@ -1,49 +1,36 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
+name: Deploy EC2 Instance
 
-  backend "s3" {
-    bucket = "ak-bucket-github"
-    key    = "ec2-demo/terraform.tfstate"
-    region = "ap-south-1"
-  }
-}
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-provider "aws" {
-  region = var.aws_region
-}
+permissions:
+  contents: read
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
 
-  tags = {
-    Name = "github-actions-demo-vpc"
-  }
-}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-resource "aws_subnet" "main" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.1.0/24"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
 
-  tags = {
-    Name = "github-actions-demo-subnet"
-  }
-}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-resource "aws_instance" "web" {
-  ami           = var.ami_id
-  instance_type = var.instance_type
-  subnet_id     = aws_subnet.main.id
+      - name: Terraform Init
+        run: terraform init
 
-  tags = {
-    Name = "github-actions-demo-vm"
-  }
-}
+      - name: Terraform Plan
+        run: terraform plan
 
-output "instance_public_ip" {
-  value = aws_instance.web.public_ip
-}
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
