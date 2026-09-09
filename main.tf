@@ -34,7 +34,7 @@ resource "aws_subnet" "main" {
   }
 }
 
-resource "aws_instance" "web" {
+resource "aws_instance_1" "web" {
   ami           = var.ami_id
   instance_type = var.instance_type
   subnet_id     = aws_subnet.main.id
