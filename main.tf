@@ -34,13 +34,13 @@ resource "aws_subnet" "main" {
   }
 }
 
-resource "aws_instance_1" "web" {
+resource "aws_instance" "web" {
   ami           = var.ami_id
   instance_type = var.instance_type
   subnet_id     = aws_subnet.main.id
 
   tags = {
-    Name = "github-actions-demo-vm"
+    Name = "github-actions-demo-vm1"
   }
 }
 
